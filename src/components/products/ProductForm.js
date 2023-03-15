@@ -30,7 +30,7 @@ const ProductForm = () => {
     const addBookMutation = useMutation(BooksApi.addBook, {
         onSuccess: (data) => {
             if (data) {
-                const id = data.id
+                const id = data.id;
 
                 const coverPhotosList = photos[PhotoTypes.COVER].map((photo) => {
                     const formData = new FormData();

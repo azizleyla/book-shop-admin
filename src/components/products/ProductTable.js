@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, Space, Table } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
@@ -29,7 +29,8 @@ const ProductTable = () => {
             dataIndex: "images",
             key: "coverImage",
             render: (value) =>
-                <img style={{ width: "100px", height: "100px" }} src={value[0].coverImage} alt="book" />
+
+                <img style={{ width: "100px", height: "100px" }} src={value[0]?.imgUrl} alt="book" />
         },
         {
             title: "Məhsulun adı",
@@ -60,14 +61,14 @@ const ProductTable = () => {
             title: "",
             key: "action",
             width: 70,
-            render: () =>
+            render: (value) =>
                 <Space size="small">
                     <Link to="">
                         <EditOutlined style={{ color: 'green', fontSize: "17px" }} />
                     </Link>
-                    <Link to="">
+                    <Button onClick={() => handleDelete(value.id)}>
                         <DeleteOutlined style={{ color: "red", fontSize: "17px", marginLeft: "30px" }} />
-                    </Link>
+                    </Button>
                 </Space>
 
         },
@@ -86,6 +87,16 @@ const ProductTable = () => {
         },
 
     ]
+    const queryClient = useQueryClient()
+    const deleteMutation = useMutation(BooksApi.deleteBook, {
+        onSuccess: () => {
+            queryClient.invalidateQueries([ApiQueryKeys.books])
+
+        }
+    })
+    const handleDelete = (id) => {
+        deleteMutation.mutate(id)
+    }
     return (
         <div>
             <div className='flex flex-end' style={{ marginBottom: "30px" }}>

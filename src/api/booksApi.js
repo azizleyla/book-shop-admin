@@ -24,6 +24,10 @@ const BooksApi = {
         //     }
         // });
         return responses.map((response) => response.data);
+    },
+    async deleteBook(id) {
+        const response = await baseApi.delete(`/book/${id}`)
+        return response.data;
     }
 }
 export default BooksApi
