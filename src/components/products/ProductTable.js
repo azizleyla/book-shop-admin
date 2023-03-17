@@ -64,7 +64,7 @@ const ProductTable = () => {
             width: 70,
             render: (value) =>
                 <Space size="small">
-                    <Link to="">
+                    <Link to={`/products/edit/${value.id}`}>
                         <EditOutlined style={{ color: 'green', fontSize: "17px" }} />
                     </Link>
                     <Button onClick={() => handleDelete(value.id)}>

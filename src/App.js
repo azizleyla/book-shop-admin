@@ -60,6 +60,7 @@ function App() {
 
               <Route path="/products" element={<ProductTable />} />
               <Route path="/products/add" element={<ProductForm />} />
+              <Route path="/products/edit/:id" element={<ProductForm />} />
             </Routes>
           </Content>
         </Layout>
