@@ -1,8 +1,8 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Button, Col, Form, Input, InputNumber, Row, Switch } from 'antd'
 import TextArea from 'antd/es/input/TextArea'
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import BooksApi from '../../api/booksApi'
 import ApiQueryKeys from '../../constants/api.constant'
 import { requiredRule } from '../../utils/validationUtils'
@@ -20,6 +20,32 @@ const ProductForm = () => {
     const [coverImage, setCoverImage] = useState("")
     const [backImg, setBackImg] = useState("")
     const queryClient = useQueryClient()
+
+    const {id} = useParams();
+    const { data } = useQuery({
+        queryKey: [ApiQueryKeys.books],
+        queryFn: () => BooksApi.getAll()
+    })
+    const selectedBook = data?.find(item => item.id ===Number(id))
+
+
+useEffect(() =>{
+
+form.setFieldsValue({
+    productNo:selectedBook?.productNo,
+    title:selectedBook?.title,
+    currentPrice:selectedBook?.currentPrice,
+    prevPrice:selectedBook?.prevPrice,
+    desc:selectedBook?.desc,
+    pageCount:selectedBook?.pageCount,
+    rating:selectedBook?.rating,
+    languageId:selectedBook?.language.lang,
+    author:selectedBook?.author,
+    qty:selectedBook?.qty,
+    isStock:selectedBook?.isStock,
+    isNew:selectedBook?.isNew
+})
+},[selectedBook])
 
     const navigate = useNavigate()
     const [photos, setPhotos] = useState({
@@ -107,6 +133,7 @@ const ProductForm = () => {
             isStock: isStock,
             qty: 1,
             isFavorite: false,
+       
 
 
         }
@@ -117,6 +144,9 @@ const ProductForm = () => {
 
         addBookMutation.mutate(data)
     }
+    useEffect(() =>{
+        setCoverImage(selectedBook?.images[0].imgUrl)
+    },[data])
     return (
         <Form
             form={form}
@@ -144,7 +174,7 @@ const ProductForm = () => {
             </Col>
             <Row gutter={[8]}>
                 <Col md={6}>
-                    <Form.Item label="Öncəki qiymət" name="prevPrice" rules={[requiredRule()]}>
+                    <Form.Item label="Öncəki qiymət" name="prevPrice">
                         <InputNumber placeholder='Qiymət' />
                     </Form.Item>
                 </Col>
@@ -185,7 +215,7 @@ const ProductForm = () => {
             </Row>
 
             <Form.Item label="Açıqlama" name="desc" rules={[requiredRule()]}>
-                <TextArea />
+                <TextArea className='textarea-desc' />
             </Form.Item>
             <Row gutter={[16]}>
                 <Col md={7}>
