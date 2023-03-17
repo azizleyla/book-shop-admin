@@ -99,7 +99,6 @@ const ProductForm = () => {
 
         reader.readAsDataURL(e.target.files[0]);
     };
-    console.log(coverImage)
     const onSubmit = (values) => {
         const data = {
             ...values,

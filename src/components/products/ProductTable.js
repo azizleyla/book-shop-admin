@@ -30,6 +30,7 @@ const ProductTable = () => {
             key: "coverImage",
             render: (value) =>
 
+
                 <img style={{ width: "100px", height: "100px" }} src={value[0]?.imgUrl} alt="book" />
         },
         {
