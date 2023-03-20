@@ -12,6 +12,14 @@ const PhotoTypes = {
     COVER: "COVER",
     BACK: "BACK"
 };
+const langs = {
+    "az": 1,
+    "en": 2,
+    "ru": 3,
+    "tr": 4
+
+
+}
 
 const ProductForm = () => {
     const [form] = Form.useForm()
@@ -21,31 +29,33 @@ const ProductForm = () => {
     const [backImg, setBackImg] = useState("")
     const queryClient = useQueryClient()
 
-    const {id} = useParams();
+    const { id } = useParams();
+    const isEdit = !!id;
+
     const { data } = useQuery({
         queryKey: [ApiQueryKeys.books],
         queryFn: () => BooksApi.getAll()
     })
-    const selectedBook = data?.find(item => item.id ===Number(id))
+    const selectedBook = data?.find(item => item.id === Number(id))
 
 
-useEffect(() =>{
+    useEffect(() => {
 
-form.setFieldsValue({
-    productNo:selectedBook?.productNo,
-    title:selectedBook?.title,
-    currentPrice:selectedBook?.currentPrice,
-    prevPrice:selectedBook?.prevPrice,
-    desc:selectedBook?.desc,
-    pageCount:selectedBook?.pageCount,
-    rating:selectedBook?.rating,
-    languageId:selectedBook?.language.lang,
-    author:selectedBook?.author,
-    qty:selectedBook?.qty,
-    isStock:selectedBook?.isStock,
-    isNew:selectedBook?.isNew
-})
-},[selectedBook])
+        form.setFieldsValue({
+            productNo: selectedBook?.productNo,
+            title: selectedBook?.title,
+            currentPrice: selectedBook?.currentPrice,
+            prevPrice: selectedBook?.prevPrice,
+            desc: selectedBook?.desc,
+            pageCount: selectedBook?.pageCount,
+            rating: selectedBook?.rating,
+            languageId: selectedBook?.language.lang,
+            author: selectedBook?.author,
+            qty: selectedBook?.qty,
+            isStock: selectedBook?.isStock,
+            isNew: selectedBook?.isNew
+        })
+    }, [selectedBook])
 
     const navigate = useNavigate()
     const [photos, setPhotos] = useState({
@@ -55,6 +65,8 @@ form.setFieldsValue({
 
     const addBookMutation = useMutation(BooksApi.addBook, {
         onSuccess: (data) => {
+            console.log(data)
+
             if (data) {
                 const id = data.id;
 
@@ -83,11 +95,45 @@ form.setFieldsValue({
             navigate('/products')
         }
     })
+    const updateBookMutation = useMutation(BooksApi.updateBook, {
+        onSuccess: (data) => {
+            if (data) {
+                const id = data.id
+                const coverPhotosList = photos[PhotoTypes.COVER].map((photo) => {
 
+
+                    const formData = new FormData();
+                    formData.append("id", data?.images[0].id);
+                    formData.append("file", photo.file);
+                    formData.append("type", "COVER");
+
+                    return formData;
+                });
+                const backPhotoList = photos[PhotoTypes.BACK].map((photo) => {
+                    const formData = new FormData();
+                    formData.append('id', data?.images[1].id);
+                    formData.append("file", photo.file);
+                    formData.append('type', 'BACK')
+                    return formData;
+                })
+                const formDataList = [...coverPhotosList, ...backPhotoList]
+                updateImageMutation.mutate(formDataList)
+            }
+            queryClient.invalidateQueries([ApiQueryKeys.books])
+            navigate('/products')
+        }
+    })
 
     const addImageMutation = useMutation(BooksApi.addImage, {
         onSuccess: () => {
             queryClient.invalidateQueries([ApiQueryKeys.books])
+        }
+    })
+    const updateImageMutation = useMutation(BooksApi.updateImage, {
+        onSuccess: (data) => {
+            queryClient.invalidateQueries([ApiQueryKeys.books])
+
+
         }
     })
 
@@ -103,7 +149,6 @@ form.setFieldsValue({
 
         reader.onload = (e) => {
             const newPhoto = {
-                id: crypto.randomUUID(),
                 file,
                 type,
                 url: e.target.result,
@@ -125,27 +170,35 @@ form.setFieldsValue({
 
         reader.readAsDataURL(e.target.files[0]);
     };
+
     const onSubmit = (values) => {
-        const data = {
-            ...values,
-            isNew: isNew,
-            isStock: isStock,
-            qty: 1,
-            isFavorite: false,
-       
+        if (isEdit) {
+            const data = { ...values, languageId: langs[values.languageId] }
+            delete data.language
+            console.log(data)
+            return updateBookMutation.mutate({ id, data })
+        } else {
+            const data = {
+                ...values,
+                isNew: isNew,
+                isStock: isStock,
+                qty: 1,
+            }
 
-
+            addBookMutation.mutate(data)
         }
+
         // delete data.coverImage
         // delete data.backImage
 
 
 
-        addBookMutation.mutate(data)
     }
-    useEffect(() =>{
+    useEffect(() => {
         setCoverImage(selectedBook?.images[0].imgUrl)
-    },[data])
+        setBackImg(selectedBook?.images[1]?.imgUrl)
+    }, [data])
+
     return (
         <Form
             form={form}

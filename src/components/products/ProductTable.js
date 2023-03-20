@@ -1,13 +1,19 @@
 import { QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Button, Space, Table } from 'antd'
+import { Button, Modal, Space, Table } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
 import BooksApi from '../../api/booksApi';
 import ApiQueryKeys from '../../constants/api.constant';
 import { EditOutlined, DeleteOutlined, EyeOutlined, PlusOutlined } from "@ant-design/icons"
+import { ExclamationCircleOutlined } from "@ant-design/icons";
+import ViewProduct from './ViewProduct';
+
+const { confirm } = Modal
 
 const ProductTable = () => {
     const [books, setBooks] = useState();
+    const [isShowViewModal, setIsShowViewModal] = useState();
+    const [selectedBook, setSelectedBook] = useState()
     const navigate = useNavigate()
     const { data } = useQuery({
         queryKey: [ApiQueryKeys.books],
@@ -67,7 +73,7 @@ const ProductTable = () => {
                     <Link to={`/products/edit/${value.id}`}>
                         <EditOutlined style={{ color: 'green', fontSize: "17px" }} />
                     </Link>
-                    <Button onClick={() => handleDelete(value.id)}>
+                    <Button style={{ border: "none", boxShadow: "none", background: "transparent" }} onClick={() => handleDelete(value.id)}>
                         <DeleteOutlined style={{ color: "red", fontSize: "17px", marginLeft: "30px" }} />
                     </Button>
                 </Space>
@@ -78,16 +84,20 @@ const ProductTable = () => {
             title: "",
             key: "view",
             widt: 40,
-            render: () =>
+            render: (value) =>
                 <Space size="small">
-                    <Link to="">
+                    <Button style={{ border: "none", boxShadow: "none", background: "transparent" }} onClick={() => handleViewProduct(value)}>
                         <EyeOutlined style={{ fontSize: "17px" }} />
-                    </Link>
+                    </Button>
                 </Space>
 
         },
 
     ]
+    const handleViewProduct = (value) => {
+        setSelectedBook(value);
+        setIsShowViewModal(true)
+    }
     const queryClient = useQueryClient()
     const deleteMutation = useMutation(BooksApi.deleteBook, {
         onSuccess: () => {
@@ -96,7 +106,17 @@ const ProductTable = () => {
         }
     })
     const handleDelete = (id) => {
-        deleteMutation.mutate(id)
+        confirm({
+            title: "Xəbərdarlıq",
+            icon: <ExclamationCircleOutlined />,
+            content: "Bu məhsulu silmək istədiyinizdən əminsiniz?",
+            cancelText: "Xeyr",
+            okText: "Bəli",
+            onOk: () => {
+                deleteMutation.mutate(id)
+            }
+
+        })
     }
     return (
         <div>
@@ -106,7 +126,8 @@ const ProductTable = () => {
                     Yeni Məhsul</Button>
             </div>
             <Table dataSource={books} columns={columns} />
-        </div>
+            <ViewProduct selectedBook={selectedBook} setIsShowViewModal={setIsShowViewModal} isShowViewModal={isShowViewModal} />
+        </div >
     )
 }
 

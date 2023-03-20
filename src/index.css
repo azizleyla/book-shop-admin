@@ -11,7 +11,12 @@
 .flex-end {
   justify-content: flex-end;
 }
-.textarea-desc{
-  min-height: 100px!important;
-  resize: none!important;
+
+.textarea-desc {
+  min-height: 100px !important;
+  resize: none !important;
+}
+
+.view-modal.ant-modal {
+  width: 820px !important;
 }
